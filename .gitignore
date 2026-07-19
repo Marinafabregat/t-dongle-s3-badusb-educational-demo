@@ -1,0 +1,23 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Credenciales y variables locales
+.env
+secrets.h
