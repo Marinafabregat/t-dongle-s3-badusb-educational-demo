@@ -48,6 +48,12 @@ constexpr const char* MESSAGE_LINE_3 =
 
 constexpr unsigned long CHARACTER_DELAY_MS = 30;
 
+// Tiempo para que Windows muestre la ventana Ejecutar.
+constexpr unsigned long RUN_DIALOG_DELAY_MS = 600;
+
+// Tiempo para que el Bloc de notas termine de abrirse.
+constexpr unsigned long NOTEPAD_START_DELAY_MS = 2500;
+
 // ======================================================
 // Estados de la demostración
 // ======================================================
@@ -182,22 +188,22 @@ void showWaitingScreen()
     );
 
     drawCenteredText(
-        "Abre Bloc de notas",
+        "Demo segura Windows",
         31,
         1,
         ST77XX_WHITE
     );
 
     drawCenteredText(
-        "Haz clic dentro",
-        45,
+        "Abrira Bloc de notas",
+        46,
         1,
         ST77XX_WHITE
     );
 
     drawCenteredText(
         "BOOT para iniciar",
-        62,
+        63,
         1,
         ST77XX_YELLOW
     );
@@ -235,6 +241,39 @@ void showCountdownScreen(uint8_t seconds)
         67,
         1,
         ST77XX_RED
+    );
+}
+
+void showOpeningNotepadScreen()
+{
+    tft.fillScreen(ST77XX_BLACK);
+
+    drawCenteredText(
+        "ACCION VISIBLE",
+        5,
+        2,
+        ST77XX_ORANGE
+    );
+
+    drawCenteredText(
+        "Abriendo solamente",
+        38,
+        1,
+        ST77XX_WHITE
+    );
+
+    drawCenteredText(
+        "el Bloc de notas",
+        53,
+        1,
+        ST77XX_WHITE
+    );
+
+    drawCenteredText(
+        "Sin comandos ocultos",
+        68,
+        1,
+        ST77XX_CYAN
     );
 }
 
@@ -302,26 +341,29 @@ void showFinishedScreen()
     );
 
     drawCenteredText(
-        "Mensaje enviado",
-        37,
+        "Notepad + texto fijo",
+        36,
         1,
         ST77XX_WHITE
     );
 
     drawCenteredText(
-        "Sin ejecutar comandos",
+        "Sin payload oculto",
         51,
         1,
         ST77XX_CYAN
     );
 
     drawCenteredText(
-        "BOOT para volver",
+        "BOOT para repetir",
         67,
         1,
         ST77XX_YELLOW
     );
 }
+// ======================================================
+// Escritura USB HID
+// ======================================================
 
 // ======================================================
 // Escritura USB HID
@@ -353,6 +395,35 @@ void typeBlankLine()
     delay(250);
 }
 
+void openNotepad()
+{
+    showOpeningNotepadScreen();
+
+    logStep("Abriendo el cuadro Ejecutar de Windows");
+
+    // Windows + R
+    Keyboard.press(KEY_LEFT_GUI);
+    Keyboard.press('r');
+
+    delay(120);
+    Keyboard.releaseAll();
+
+    delay(RUN_DIALOG_DELAY_MS);
+
+    logStep("Escribiendo el nombre visible de la aplicacion");
+
+    // Aplicación local e inocua.
+    typeSlowly("notepad");
+
+    delay(200);
+
+    Keyboard.write(KEY_RETURN);
+    Keyboard.releaseAll();
+
+    logStep("Solicitud de apertura del Bloc de notas enviada");
+
+    delay(NOTEPAD_START_DELAY_MS);
+}
 // ======================================================
 // Control de la demostración
 // ======================================================
@@ -398,10 +469,19 @@ void executeTypingDemo()
 {
     currentState = DemoState::TYPING;
 
+    logStep("Cuenta atras completada");
+    logStep("Comenzando demostracion HID autorizada");
+
+    /*
+     * Abre únicamente el Bloc de notas.
+     * No utiliza PowerShell, CMD, URLs ni argumentos.
+     */
+    openNotepad();
+
     showTypingScreen();
 
-    logStep("Cuenta atras completada");
-    logStep("Iniciando escritura del mensaje educativo");
+    logStep("Bloc de notas abierto");
+    logStep("Iniciando escritura del mensaje educativo fijo");
 
     typeLine(MESSAGE_LINE_1);
     typeBlankLine();
@@ -417,6 +497,7 @@ void executeTypingDemo()
     logStep("No se ejecutaron comandos");
     logStep("No se descargaron archivos");
     logStep("No se abrieron terminales");
+    logStep("No se modifico el sistema");
     logStep("Demostracion finalizada");
 
     currentState = DemoState::FINISHED;
